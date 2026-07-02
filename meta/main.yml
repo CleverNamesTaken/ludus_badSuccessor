@@ -1,0 +1,16 @@
+---
+dependencies: []
+
+galaxy_info:
+  role_name: ludus_BadSuccessor
+  author: CleverNamesTaken
+  description: An Ansible Role that installs makes creates BadSuccessor vulnerabilities in a Server 2025 Active Directory environment.
+  company: ''
+  license: GPLv3
+  min_ansible_version: "2.10"
+  platforms:
+    - name: Windows 
+      versions:
+        - "2025"
+
+collections: [] # Add any collections needed here

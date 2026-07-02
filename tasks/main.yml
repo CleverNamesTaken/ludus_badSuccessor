@@ -1,0 +1,91 @@
+
+# Create OUs
+- name: Create OUs
+  microsoft.ad.ou:
+    name: "{{ chain.ou }}"
+    path: "DC={{ netbios_name }},DC={{ fqdn_tail.split('.') | join(',DC=') }}"
+    state: present
+  vars:
+    netbios_name: "{{ (ludus | selectattr('vm_name', 'equalto', inventory_hostname))[0].domain.fqdn.split('.')[0] }}"
+    fqdn_tail: "{{ (ludus | selectattr('vm_name', 'equalto', inventory_hostname))[0].domain.fqdn.split('.')[1:] | join('.') }}"
+  loop: "{{ ludus_badSuccessor.attackChains }}"
+  loop_control:
+    loop_var: "chain"
+
+- name: Grant CreateChild privs on OUs
+  ansible.windows.win_powershell:
+    script: |
+      Import-Module ActiveDirectory
+      $ouDn = "OU={{ chain.ou }},DC={{ netbios_name }},DC={{ fqdn_tail.split('.') | join(',DC=') }}"
+      $userSam = "{{ chain.writableUser }}"
+
+      # Resolve user to object DN
+      $user = Get-ADUser -Identity $userSam
+      $userSID = $user.SID
+
+      # Rights: CreateChild
+      $adRight =  [System.DirectoryServices.ActiveDirectoryRights] "CreateChild"
+      $aceFlags = [System.Security.AccessControl.InheritanceFlags]::None
+      $type =  [System.Security.AccessControl.AccessControlType] "Allow"
+      $inheritanceType = [System.DirectoryServices.ActiveDirectorySecurityInheritance] "None"
+
+      # Object type: (optional) restricts which child object types can be created.
+      # Leave as $null to apply to all child object types.
+      $objectTypeGuid = [Guid]::Empty
+
+      # Apply rights to the OU
+      $acl = Get-Acl ("AD:\" + $ouDn)
+      $ace = New-Object System.DirectoryServices.ActiveDirectoryAccessRule $userSID,$adRight,$type,$inheritanceType
+
+      $acl.AddAccessRule($ace)
+      Set-Acl ("AD:\" + $ouDn) $acl
+  vars:
+    netbios_name: "{{ (ludus | selectattr('vm_name', 'equalto', inventory_hostname))[0].domain.fqdn.split('.')[0] }}"
+    fqdn_tail: "{{ (ludus | selectattr('vm_name', 'equalto', inventory_hostname))[0].domain.fqdn.split('.')[1:] | join('.') }}"
+  loop: "{{ ludus_badSuccessor.attackChains }}"
+  loop_control:
+    loop_var: "chain"
+
+
+- name: Grant writableUser WriteProperty on msDS-SupersededManagedAccountLink and msDS-SupersededServiceAccountState on targetObject
+  ansible.windows.win_powershell:
+    script: |
+      Import-Module ActiveDirectory
+
+      $userSam = "{{ chain.writableUser }}"
+      $user = Get-ADUser -Identity $userSam
+      $userSID = $user.SID
+
+      $targetSam = "{{ chain.targetObject }}"
+      $target = Get-ADUser -Identity $targetSam
+      $targetDn = $target.DistinguishedName
+
+
+      # Attribute schema GUIDs --look up GUIDs
+      $attr1Guid = [Guid]"3752e002-43be-48c8-b3ca-2cb2fffbc8a1" # msDS-SupersededManagedAccountLink
+      $attr2Guid = [Guid]"a4693096-a4c3-4ecd-b8cb-73cd6398b7a2" # msDS-SupersededServiceAccountState
+
+      # Get existing ACL on the object
+      $acl = Get-Acl ("AD:\" + $targetDn)
+
+      # WriteProperty = write attribute values
+      $aceType = [System.DirectoryServices.ActiveDirectoryRights]::WriteProperty
+
+      $adRight =  [System.DirectoryServices.ActiveDirectoryRights] "WriteProperty"
+      $type =  [System.Security.AccessControl.AccessControlType] "Allow"
+
+      $inheritanceType = [System.DirectoryServices.ActiveDirectorySecurityInheritance] "None"
+      # Allow ACE scoped to each attribute
+      foreach ($guid in @($attr1Guid, $attr2Guid)) {
+
+        $ace = New-Object System.DirectoryServices.ActiveDirectoryAccessRule( $userSID, $adRight, $type, $guid, $inheritanceType )
+        $acl.AddAccessRule($ace)
+      }
+
+      Set-Acl ("AD:\" + $targetDn) $acl
+  vars:
+    netbios_name: "{{ (ludus | selectattr('vm_name', 'equalto', inventory_hostname))[0].domain.fqdn.split('.')[0] }}"
+    fqdn_tail: "{{ (ludus | selectattr('vm_name', 'equalto', inventory_hostname))[0].domain.fqdn.split('.')[1:] | join('.') }}"
+  loop: "{{ ludus_badSuccessor.attackChains }}"
+  loop_control:
+    loop_var: "chain"

@@ -1,0 +1,21 @@
+ludus:
+  - vm_name: "{{ range_id }}-BadSuccessor-DC"
+    hostname: "{{ range_id }}-DC01-2025"
+    template: win2025-server-x64-tpm-template
+    vlan: 10
+    ip_last_octet: 11
+    ram_gb: 6
+    cpus: 4
+    windows:
+      sysprep: true
+    domain:
+      fqdn: ludus.domain
+      role: primary-dc
+    roles:
+      - CleverNamesTaken.ludus_BadSuccessor
+    role_vars:
+      ludus_badSuccessor:
+        attackChains:
+        - writableUser: domainuser
+          targetObject: domainadmin
+          ou: badSuccessorOU
