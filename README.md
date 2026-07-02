@@ -31,7 +31,7 @@ Available variables are listed below:
 
 ## Dependencies
 
-None.
+This role assumes that the "writable users" and target objects already exist in the environment.  This role will create an OU if it doesn't already exist and ensure that the writable users have CreateChild access on the OU.
 
 ## Example Ludus Range Config
 
