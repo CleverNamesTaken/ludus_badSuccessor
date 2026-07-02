@@ -12,7 +12,7 @@ ludus:
       fqdn: ludus.domain
       role: primary-dc
     roles:
-      - CleverNamesTaken.ludus_BadSuccessor
+      - CleverNamesTaken.ludus_badSuccessor
     role_vars:
       ludus_badSuccessor:
         attackChains:

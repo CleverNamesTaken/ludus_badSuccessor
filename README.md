@@ -19,17 +19,15 @@ May need to swap out values for `ad_domain_functional_level` and `ad_forest_func
 
 ## Role Variables
 
-Available variables are listed below, along with default values (see `defaults/main.yml`):
+Available variables are listed below:
 
-      ludus_badSuccessor:
-      #You can have multiple attach chains
-        attackChains:
-	#the writableUser is the user that can write on a target object
-        - writableUser: domainuser
-	#This is the object that we will impersonate
-          targetObject: domainadmin
-	#This is an OU that the writableUser has CreateChild rights on
-          ou: badSuccessorOU
+| VariableName | Type | Example | Description |
+|--------------|------|---------|-------------|
+| ludus_badSuccessor | Group | N/A | ludus_badSuccessor variables go under this group -- right now only attackChains |
+| attackChains | Group | N/A | In theory you can build out a number of attack chains -- put them each in here |
+| writableUser | String | domainuser | This is the user that has at least msDS-SupersededManagedAccountLink and msDS-SupersededServiceAccountState write privileges on a target object |
+| targetObject | String | domainadmin | This is the target that we will be able to impersonate with BadSuccessor.  Could be a machine account, service account, or a user account |
+| ou | String | badSuccessorOU | This is an OU that the writableUser has CreateChild rights on |
 
 ## Dependencies
 
@@ -53,7 +51,7 @@ ludus:
       fqdn: ludus.domain
       role: primary-dc
     roles:
-      - CleverNamesTaken.ludus_BadSuccessor
+      - CleverNamesTaken.ludus_badSuccessor
     role_vars:
       ludus_badSuccessor:
         attackChains:
