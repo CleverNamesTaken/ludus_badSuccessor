@@ -5,8 +5,9 @@ An Ansible Role that creates BadSuccessor vulnerabilities in a Server 2025 Activ
 ## Quickstart
 
 ```
-ludus ansible roles add -d ../ludus_badSuccessor
-ludus range config set -f minimal_range.yml
+git clone https://github.com/CleverNamesTaken/ludus_badSuccessor
+ludus ansible roles add -d ludus_badSuccessor
+ludus range config set -f ludus_badSuccessor/minimal_range.yml
 ludus range deploy
 ```
 
@@ -32,6 +33,7 @@ Available variables are listed below:
 ## Dependencies
 
 This role assumes that the "writable users" and target objects already exist in the environment.  This role will create an OU if it doesn't already exist and ensure that the writable users have CreateChild access on the OU.
+
 
 ## Example Ludus Range Config
 
