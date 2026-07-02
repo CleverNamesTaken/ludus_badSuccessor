@@ -1,6 +1,6 @@
 # Ansible Role: BadSuccessor ([Ludus](https://ludus.cloud))
 
-An Ansible Role that installs creates BadSuccessor vulnerabilities in a Server 2025 Active Directory environment.
+An Ansible Role that creates BadSuccessor vulnerabilities in a Server 2025 Active Directory environment.
 
 ## Quickstart
 
